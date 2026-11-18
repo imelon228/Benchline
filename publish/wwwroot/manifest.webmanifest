@@ -1,0 +1,15 @@
+{
+  "name": "Benchline Workshop",
+  "short_name": "Benchline",
+  "description": "Workshop scheduling and equipment reservations",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
+  "icons": [
+    { "src": "icons/benchline-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "icons/benchline-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" }
+  ]
+}

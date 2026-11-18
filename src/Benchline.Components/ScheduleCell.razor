@@ -1,0 +1,58 @@
+@using Benchline.Contracts
+
+<td class="schedule-slot @StateClass" role="cell">
+    @if (State != ScheduleSlotState.NoSession)
+    {
+        <span class="slot-time" aria-hidden="true">@AstanaTime.Format(Time, "HH:mm")@(ShowDate ? " " + AstanaTime.Format(Time, "d MMM") : "")</span>
+        @if (State == ScheduleSlotState.Open && CanReserve && Slot is { } slot)
+        {
+            <button type="button" class="slot-button" data-slot data-row="@Row" data-column="@Column"
+                    aria-label="@ReservationLabel"
+                    disabled="@(!CanWrite)" aria-describedby="@(!CanWrite ? DisabledReasonId : null)" @onclick="() => Reserve.InvokeAsync(slot)">
+                Open
+            </button>
+        }
+        else
+        {
+            <span class="slot-label">@Label</span>
+        }
+    }
+</td>
+
+@code {
+    [Parameter] public ScheduleSlotState State { get; set; }
+    [Parameter] public SlotDto? Slot { get; set; }
+    [Parameter] public DateTimeOffset Time { get; set; }
+    [Parameter] public string StationName { get; set; } = "";
+    [Parameter] public bool ShowDate { get; set; }
+    [Parameter] public int Row { get; set; }
+    [Parameter] public int Column { get; set; }
+    [Parameter] public bool CanReserve { get; set; }
+    [Parameter] public bool CanWrite { get; set; }
+    [Parameter] public string? DisabledReasonId { get; set; }
+    [Parameter] public EventCallback<SlotDto> Reserve { get; set; }
+
+    private string ReservationLabel =>
+        $"Open session. Reserve {StationName}, {AstanaTime.Format(Time, ShowDate ? "d MMM, HH:mm" : "HH:mm")} {AstanaTime.ShortZone}";
+
+    private string StateClass => State switch
+    {
+        ScheduleSlotState.Open => "slot-open",
+        ScheduleSlotState.Own => "slot-own",
+        ScheduleSlotState.Taken => "slot-taken",
+        ScheduleSlotState.OutOfService => "slot-out",
+        ScheduleSlotState.NoSession => "slot-gap",
+        _ => "slot-inactive"
+    };
+
+    private string Label => State switch
+    {
+        ScheduleSlotState.Open => "Open",
+        ScheduleSlotState.Own => "Yours",
+        ScheduleSlotState.Taken => "Taken",
+        ScheduleSlotState.OutOfService => "Offline",
+        ScheduleSlotState.InProgress => "In progress",
+        ScheduleSlotState.Saving => "Saving",
+        _ => ""
+    };
+}

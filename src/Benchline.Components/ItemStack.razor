@@ -1,0 +1,21 @@
+@typeparam TItem
+@if (Items.Count == 0)
+{
+    <p class="empty">@EmptyText</p>
+}
+else
+{
+    <ul class="item-stack" aria-label="@Label">
+        @foreach (var item in Items)
+        {
+            <li @key="item">@ItemTemplate(item)</li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<TItem> Items { get; set; } = [];
+    [Parameter, EditorRequired] public RenderFragment<TItem> ItemTemplate { get; set; } = default!;
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public string EmptyText { get; set; } = "There is nothing to show yet.";
+}

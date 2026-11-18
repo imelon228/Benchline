@@ -1,0 +1,164 @@
+@page "/"
+@implements IAsyncDisposable
+@inject BoardStore Store
+@inject WorkshopApi Api
+@inject NavigationManager Navigation
+@inject IJSRuntime Browser
+
+<PageTitle>@DocumentTitle</PageTitle>
+<a class="skip" href="#main">Skip to content</a>
+<WorkshopHeader Theme="Theme" Session="State.Session" IsMember="State.IsMember"
+                IsCoordinator="State.IsCoordinator" CanSignOut="@(State.Online && !State.Busy)"
+                WriteReason="@WriteReason"
+                View="_view" ViewChanged="NavigateView" SignOut="SignOut" />
+
+<main class="wrap section" id="main" tabindex="-1">
+    <WorkshopNotices Error="@State.Error" Notice="@State.Notice" Online="State.Online" Dismissed="Dismiss" />
+
+    @if (State.Session is null && State.Loading)
+    {
+        <section class="signin-shell">
+            <h1>Sign in</h1>
+            <p class="muted">Use your workshop account to view the schedule.</p>
+            <p role="status">Checking your session.</p>
+        </section>
+    }
+    else if (State.Session is null)
+    {
+        <section class="signin-shell" aria-labelledby="sign-title">
+            <h1 id="sign-title">Sign in</h1>
+            <p class="muted">Use your workshop account to view the schedule.</p>
+            <form @onsubmit="SignIn" @onsubmit:preventDefault>
+                <label for="user-name">Username</label>
+                <input id="user-name" autocomplete="username" required maxlength="80" @bind="_username" />
+                <label for="password">Password</label>
+                <input id="password" type="password" autocomplete="current-password" required maxlength="200" @bind="_password" />
+                <button type="submit" class="primary-button" disabled="@(!State.Online || State.Busy)"
+                        aria-describedby="@(!State.Online || State.Busy ? "signin-reason" : null)">@(State.Busy ? "Signing in…" : "Sign in")</button>
+                @if (!State.Online || State.Busy)
+                {
+                    <small class="action-reason" id="signin-reason">@(State.Online ? "Checking your credentials" : "Reconnect to sign in")</small>
+                }
+            </form>
+            @if (Api.DemoAccess is { } demo)
+            {
+                <section class="demo-accounts" aria-labelledby="demo-title">
+                    <h2 id="demo-title">Demo accounts</h2>
+                    <p class="muted">Select a username to fill the form.</p>
+                    <table class="ruled-table">
+                        <thead><tr><th scope="col">Role</th><th scope="col">Username</th></tr></thead>
+                        <tbody>
+                            @foreach (var (role, username) in DemoAccounts)
+                            {
+                                <tr @key="username"><td>@role</td><td><button type="button" class="text-button mono" @onclick="() => _username = username">@username</button></td></tr>
+                            }
+                        </tbody>
+                    </table>
+                    <p class="muted">
+                        @if (demo == "default")
+                        {
+                            <span>Demo password <code>@DemoSignIn.DefaultPassword</code></span>
+                        }
+                        else
+                        {
+                            <span>Use the password configured for this demo.</span>
+                        }
+                    </p>
+                </section>
+            }
+        </section>
+    }
+    else if (State.Board is not { } board)
+    {
+        <h1>Workshop board</h1>
+        @if (State.Loading)
+        {
+            <p role="status">Loading the schedule.</p>
+        }
+        else
+        {
+            <button class="secondary-button" @onclick="Refresh" disabled="@(!State.Online)"
+                    aria-describedby="@(!State.Online ? "retry-reason" : null)">Retry loading the board</button>
+            @if (!State.Online)
+            {
+                <small class="action-reason" id="retry-reason">Reconnect to load the board</small>
+            }
+        }
+    }
+    else
+    {
+        @if (_view == BoardView.Board)
+        {
+            <div class="section-title">
+                <div>
+                    <h1>Workshop board</h1>
+                    <p class="board-date mono">@WorkshopFormat.Date(board.AsOf) · @AstanaTime.ShortZone</p>
+                </div>
+                <div class="board-meta">
+                    <ConnectionStatus Online="State.Online" Live="State.Live" />
+                    <span class="mono">Revision @board.Revision</span>
+                </div>
+            </div>
+            <p class="board-summary"><strong class="mono">@board.Stations.Count(station => station.Online)</strong> of <strong class="mono">@board.Stations.Length</strong> stations online, <strong class="mono">@State.AvailableCount</strong> open sessions, <strong class="mono">@(State.IsMember ? board.Bookings.Count(item => item.Status == "Displaced") : board.Stations.Sum(item => item.Displaced))</strong> awaiting recovery.</p>
+
+            <section aria-labelledby="equipment-title">
+                <div class="section-title section-toolbar">
+                    <div><h2 id="equipment-title">Equipment schedule</h2><p class="muted">One-hour sessions in @AstanaTime.Zone.@(State.IsMember ? " Select an open session to reserve it." : "")</p></div>
+                    <div class="toolbar-actions">
+                        <StationFilter Capabilities="@board.Stations.Select(station => station.Capability).Distinct().Order()" @bind-Value="_filter" />
+                        <div>
+                            <button type="button" class="secondary-button" @onclick="Refresh" disabled="@(!State.Online || State.Busy)"
+                                    aria-describedby="@(!State.Online || State.Busy ? "refresh-reason" : null)">Refresh board</button>
+                            @if (!State.Online || State.Busy)
+                            {
+                                <small class="action-reason" id="refresh-reason">@(State.Online ? WriteReason : "Reconnect to refresh")</small>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <ScheduleGrid Board="board" Filter="@_filter" PendingSlot="State.PendingSlot" IsMember="State.IsMember"
+                              IsCoordinator="State.IsCoordinator" CanWrite="State.CanWrite"
+                              WriteReason="@WriteReason" ReserveStation="OpenBooking"
+                              ReserveSlot="OpenSlot" AvailabilityChanged="SetAvailability" Preview="Preview" />
+            </section>
+
+            <aside class="detail-region" aria-label="Workshop details">
+                <h2>@(State.IsMember ? "Your reservations" : "Recovery queue")</h2>
+                @if (State.IsMember)
+                {
+                    <BookingsList Board="board" CanWrite="State.CanWrite" WriteReason="@WriteReason" Cancel="Cancel" />
+                }
+                else
+                {
+                    <RecoveryQueue Stations="board.Stations" />
+                }
+            </aside>
+        }
+        else if (_view == BoardView.Bookings)
+        {
+            <div class="section-title"><div><h1>My bookings</h1><p class="muted">Review your sessions and cancel any you no longer need.</p></div></div>
+            <BookingsList Board="board" CanWrite="State.CanWrite" WriteReason="@WriteReason" Cancel="Cancel" />
+        }
+        else if (_view == BoardView.Audit)
+        {
+            <AuditLog Rows="_audit" Loading="_auditLoading" Online="State.Online" Demo="@(Api.DemoAccess is not null)"
+                      NextCursor="_nextAudit" LoadOlder="cursor => LoadAudit(cursor)" />
+        }
+
+        @if (_bookingStation is { } stationId)
+        {
+            var station = board.Stations.Single(item => item.Id == stationId);
+            <BookingDialog StationName="@station.Name" Slots="@State.AvailableFor(stationId)"
+                           @bind-SelectedSlot="_selectedSlot" @bind-ExtraHours="_extraHours" Error="@State.Error"
+                           CanWrite="State.CanWrite" Busy="State.Busy" WriteReason="@WriteReason" Close="CloseBooking" Confirm="Reserve" />
+        }
+
+        @if (_plan is { } plan && _planStation is { } planStation)
+        {
+            <RecoveryDialog Plan="plan" Board="board" CanWrite="State.CanWrite" WriteReason="@WriteReason" Error="@State.Error"
+                            Close="ClosePlan" Publish="() => Publish(planStation, plan)" />
+        }
+    }
+</main>
+
+<footer class="wrap footer"><a href="/components">Component library</a></footer>

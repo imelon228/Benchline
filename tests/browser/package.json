@@ -1,0 +1,15 @@
+{
+  "name": "benchline-browser-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "preaudit": "node -e \"require('node:fs').mkdirSync('../../TestResults', { recursive: true })\"",
+    "audit": "lighthouse http://localhost:8080/ --preset=desktop --chrome-flags=--headless --output=json --output-path=../../TestResults/lighthouse.json"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.65.1",
+    "lighthouse": "13.6.0"
+  }
+}

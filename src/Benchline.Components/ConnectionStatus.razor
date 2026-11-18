@@ -1,0 +1,6 @@
+<StatusChip Text="@(Live ? "Live" : Online ? "Reconnecting" : "Offline")" Tone="@(Live ? ChipTone.Positive : ChipTone.Neutral)" />
+
+@code {
+    [Parameter] public bool Online { get; set; }
+    [Parameter] public bool Live { get; set; }
+}

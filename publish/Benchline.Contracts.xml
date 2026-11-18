@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Benchline.Contracts</name>
+    </assembly>
+    <members>
+        <member name="T:Benchline.Contracts.ReserveRequest">
+            <summary>Place a reservation against the schedule revision the member reviewed.</summary>
+            <param name="Revision">The current revision from the workshop board.</param>
+            <param name="BookingId">A caller-created identifier for this reservation.</param>
+            <param name="SlotId">An available equipment session on the board.</param>
+            <param name="Deadline">The latest acceptable finish for a replacement, expressed as an ISO 8601 timestamp.</param>
+        </member>
+        <member name="M:Benchline.Contracts.ReserveRequest.#ctor(System.Int64,System.Guid,System.Guid,System.DateTimeOffset)">
+            <summary>Place a reservation against the schedule revision the member reviewed.</summary>
+            <param name="Revision">The current revision from the workshop board.</param>
+            <param name="BookingId">A caller-created identifier for this reservation.</param>
+            <param name="SlotId">An available equipment session on the board.</param>
+            <param name="Deadline">The latest acceptable finish for a replacement, expressed as an ISO 8601 timestamp.</param>
+        </member>
+        <member name="P:Benchline.Contracts.ReserveRequest.Revision">
+            <summary>The current revision from the workshop board.</summary>
+        </member>
+        <member name="P:Benchline.Contracts.ReserveRequest.BookingId">
+            <summary>A caller-created identifier for this reservation.</summary>
+        </member>
+        <member name="P:Benchline.Contracts.ReserveRequest.SlotId">
+            <summary>An available equipment session on the board.</summary>
+        </member>
+        <member name="P:Benchline.Contracts.ReserveRequest.Deadline">
+            <summary>The latest acceptable finish for a replacement, expressed as an ISO 8601 timestamp.</summary>
+        </member>
+        <member name="T:Benchline.Contracts.PublishRequest">
+            <summary>Publish the replacement assignments reviewed by the coordinator.</summary>
+            <param name="Revision">The revision included in the preview.</param>
+            <param name="Moves">The ordered list of replacement assignments included in the preview.</param>
+        </member>
+        <member name="M:Benchline.Contracts.PublishRequest.#ctor(System.Int64,Benchline.Contracts.MoveDto[])">
+            <summary>Publish the replacement assignments reviewed by the coordinator.</summary>
+            <param name="Revision">The revision included in the preview.</param>
+            <param name="Moves">The ordered list of replacement assignments included in the preview.</param>
+        </member>
+        <member name="P:Benchline.Contracts.PublishRequest.Revision">
+            <summary>The revision included in the preview.</summary>
+        </member>
+        <member name="P:Benchline.Contracts.PublishRequest.Moves">
+            <summary>The ordered list of replacement assignments included in the preview.</summary>
+        </member>
+    </members>
+</doc>

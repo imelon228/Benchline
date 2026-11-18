@@ -1,0 +1,47 @@
+@using System.Reflection
+@using Microsoft.AspNetCore.Components.WebAssembly.Services
+@inject LazyAssemblyLoader AssemblyLoader
+
+<Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="_featureAssemblies" OnNavigateAsync="LoadPage">
+    <Found Context="route">
+        <RouteView RouteData="route" />
+        <FocusOnNavigate RouteData="route" Selector="h1" />
+    </Found>
+    <Navigating>
+        <main class="wrap section"><p role="status">Opening page…</p></main>
+    </Navigating>
+    <NotFound>
+        <PageTitle>Page not found | Benchline</PageTitle>
+        <header class="site-header"><div class="wrap header-content"><a href="/" class="brand">Benchline</a></div></header>
+        <main class="wrap section not-found">
+            <h1>Page not found</h1>
+            <p class="muted">This address does not match a workshop page.</p>
+            <a href="/" class="primary-button">Return to the board</a>
+        </main>
+    </NotFound>
+</Router>
+
+@code {
+    private IReadOnlyList<Assembly> _featureAssemblies = [];
+
+    private async Task LoadPage(NavigationContext navigation)
+    {
+        navigation.CancellationToken.ThrowIfCancellationRequested();
+        if (!navigation.Path.Split('?', '#')[0].Trim('/').Equals("components", StringComparison.OrdinalIgnoreCase)
+            || _featureAssemblies.Count > 0)
+            return;
+
+        try
+        {
+            var loaded = (await AssemblyLoader.LoadAssembliesAsync(["Benchline.Showcase.wasm"])).ToArray();
+            if (loaded.Length > 0)
+                _featureAssemblies = loaded;
+        }
+        catch (JSException)
+        {
+            // The router shows a recoverable page when a feature asset is unavailable.
+        }
+
+        navigation.CancellationToken.ThrowIfCancellationRequested();
+    }
+}

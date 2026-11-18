@@ -1,0 +1,19 @@
+@if (Error is { } error)
+{
+    <NoticeBar Text="@error" Error="true" OnDismiss="Dismissed" />
+}
+@if (Notice is { } notice)
+{
+    <NoticeBar Text="@notice" OnDismiss="Dismissed" />
+}
+@if (!Online)
+{
+    <NoticeBar Text="You are offline. Reconnect to change a reservation or update the schedule." />
+}
+
+@code {
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public string? Notice { get; set; }
+    [Parameter] public bool Online { get; set; } = true;
+    [Parameter] public EventCallback Dismissed { get; set; }
+}

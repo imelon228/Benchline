@@ -1,0 +1,53 @@
+<dialog id="reserve-dialog" aria-labelledby="reserve-title" @oncancel="Close">
+    <div class="dialog-head"><h2 id="reserve-title">Reserve @StationName</h2><button type="button" class="icon-button" aria-label="Close reservation" @onclick="Close">Close</button></div>
+    <p class="muted">Choose a start time and the latest finish you can accept if your session moves.</p>
+    <form @onsubmit="Confirm" @onsubmit:preventDefault>
+        <label for="session-slot">Session start · @AstanaTime.Zone</label>
+        <select id="session-slot" required @bind:get="SelectedSlot" @bind:set="value => SelectedSlotChanged.InvokeAsync(value)">
+            @foreach (var slot in Slots)
+            {
+                <option value="@slot.Id">@WorkshopFormat.Time(slot.Start)</option>
+            }
+        </select>
+        <label for="deadline-extra">If moved, finish by · @AstanaTime.ShortZone</label>
+        <select id="deadline-extra" @bind:get="ExtraHours" @bind:set="value => ExtraHoursChanged.InvokeAsync(value)">
+            <option value="0">@DeadlineOption(0, "Original finish")</option>
+            <option value="1">@DeadlineOption(1, "1 hour later")</option>
+            <option value="3">@DeadlineOption(3, "3 hours later")</option>
+            <option value="24">@DeadlineOption(24, "1 day later")</option>
+        </select>
+        @if (Error is { } bookingError)
+        {
+            <NoticeBar Text="@bookingError" Error="true" />
+        }
+        <button type="submit" class="primary-button" disabled="@(DisabledReason is not null)"
+                aria-describedby="@(DisabledReason is not null ? "confirm-reason" : null)">@(Busy ? "Reserving…" : "Confirm reservation")</button>
+        @if (DisabledReason is { } reason)
+        {
+            <small class="action-reason" id="confirm-reason">@reason</small>
+        }
+    </form>
+</dialog>
+
+@code {
+    [Parameter] public string StationName { get; set; } = "";
+    [Parameter] public IEnumerable<SlotDto> Slots { get; set; } = [];
+    [Parameter] public Guid SelectedSlot { get; set; }
+    [Parameter] public int ExtraHours { get; set; }
+    [Parameter] public EventCallback<Guid> SelectedSlotChanged { get; set; }
+    [Parameter] public EventCallback<int> ExtraHoursChanged { get; set; }
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public bool CanWrite { get; set; }
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public string WriteReason { get; set; } = "Schedule changes are unavailable";
+    [Parameter] public EventCallback Close { get; set; }
+    [Parameter] public EventCallback Confirm { get; set; }
+
+    private string DeadlineOption(int extra, string label) => Slots.FirstOrDefault(slot => slot.Id == SelectedSlot) is { } slot
+        ? $"{AstanaTime.Format(slot.End.AddHours(extra), "ddd d MMM, HH:mm")} · {label}"
+        : label;
+
+    private string? DisabledReason => !CanWrite ? WriteReason
+        : !Slots.Any() ? "No open sessions"
+        : !Slots.Any(slot => slot.Id == SelectedSlot) ? "Choose a session that is still open" : null;
+}

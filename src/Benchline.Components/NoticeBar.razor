@@ -1,0 +1,13 @@
+<div class="notice @(Error ? "notice-error" : "")" role="@(Error ? "alert" : "status")">
+    <span>@Text</span>
+    @if (OnDismiss.HasDelegate)
+    {
+        <button type="button" class="icon-button" aria-label="Dismiss message" @onclick="OnDismiss">Dismiss</button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Text { get; set; } = "";
+    [Parameter] public bool Error { get; set; }
+    [Parameter] public EventCallback OnDismiss { get; set; }
+}

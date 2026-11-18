@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../Benchline.Domain/Benchline.Domain.csproj" />
+  </ItemGroup>
+</Project>

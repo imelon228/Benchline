@@ -1,0 +1,44 @@
+name: Benchline CI
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  dotnet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore Benchline.slnx
+      - run: dotnet build Benchline.slnx -c Release --no-restore
+      - run: dotnet test Benchline.slnx -c Release --no-build --collect "XPlat Code Coverage" --results-directory TestResults
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-test-results
+          path: TestResults
+      - run: docker compose config --quiet
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: tests/browser/package-lock.json
+      - run: docker compose up --build -d
+      - run: curl --fail --retry 25 --retry-all-errors --retry-delay 1 http://localhost:8080/health
+      - run: npm ci
+        working-directory: tests/browser
+      - run: npx playwright install --with-deps chromium firefox webkit
+        working-directory: tests/browser
+      - run: npm test
+        working-directory: tests/browser
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-traces
+          path: tests/browser/test-results
+      - run: docker compose logs
+        if: failure()

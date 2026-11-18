@@ -1,0 +1,18 @@
+<div class="small-control">
+    <label for="capability">Filter</label>
+    <select id="capability" value="@Value" @onchange="Select">
+        <option value="">All equipment</option>
+        @foreach (var capability in Capabilities)
+        {
+            <option value="@capability">@capability</option>
+        }
+    </select>
+</div>
+
+@code {
+    [Parameter] public IEnumerable<string> Capabilities { get; set; } = [];
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    private Task Select(ChangeEventArgs change) => ValueChanged.InvokeAsync(change.Value?.ToString() ?? "");
+}

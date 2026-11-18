@@ -1,0 +1,17 @@
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\bin\Release\net10.0\Benchline.Infrastructure.deps.json
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\bin\Release\net10.0\Benchline.Infrastructure.dll
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\bin\Release\net10.0\Benchline.Infrastructure.pdb
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\bin\Release\net10.0\Benchline.Application.dll
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\bin\Release\net10.0\Benchline.Domain.dll
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\bin\Release\net10.0\Benchline.Application.pdb
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\bin\Release\net10.0\Benchline.Domain.pdb
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\obj\Release\net10.0\Benchline.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\obj\Release\net10.0\Benchline.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\obj\Release\net10.0\Benchline.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\obj\Release\net10.0\Benchline.Infrastructure.AssemblyInfo.cs
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\obj\Release\net10.0\Benchline.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\obj\Release\net10.0\Benchlin.13640C9F.Up2Date
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\obj\Release\net10.0\Benchline.Infrastructure.dll
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\obj\Release\net10.0\refint\Benchline.Infrastructure.dll
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\obj\Release\net10.0\Benchline.Infrastructure.pdb
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Infrastructure\obj\Release\net10.0\ref\Benchline.Infrastructure.dll

@@ -1,0 +1,9 @@
+@if (Settings is not null)
+{
+    <button type="button" class="quiet-button" aria-pressed="@Settings.Dark.ToString().ToLowerInvariant()"
+            @onclick="Settings.Toggle">@(Settings.Dark ? "Light mode" : "Dark mode")</button>
+}
+
+@code {
+    [CascadingParameter] public ThemeSetting? Settings { get; set; }
+}

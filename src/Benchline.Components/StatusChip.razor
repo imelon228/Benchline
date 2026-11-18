@@ -1,0 +1,13 @@
+<span class="status-chip @StatusClass"><span class="status-dot" aria-hidden="true"></span>@Text</span>
+
+@code {
+    [Parameter, EditorRequired] public string Text { get; set; } = "";
+    [Parameter] public ChipTone Tone { get; set; } = ChipTone.Neutral;
+
+    private string StatusClass => Tone switch
+    {
+        ChipTone.Positive => "tone-positive",
+        ChipTone.Warning => "tone-warning",
+        _ => "tone-neutral"
+    };
+}

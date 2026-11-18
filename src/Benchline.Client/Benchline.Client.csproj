@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <ServiceWorker Include="wwwroot/service-worker.js" PublishedContent="wwwroot/service-worker.published.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <BlazorWebAssemblyLazyLoad Include="Benchline.Showcase.wasm" />
+    <TrimmerRootAssembly Include="Benchline.Showcase" />
+    <ProjectReference Include="../Benchline.Showcase/Benchline.Showcase.csproj" />
+    <ProjectReference Include="../Benchline.Contracts/Benchline.Contracts.csproj" />
+    <ProjectReference Include="../Benchline.Components/Benchline.Components.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.15" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.15" />
+    <PackageReference Include="Polly.Core" Version="8.4.2" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,83 @@
+@page "/components"
+@using Benchline.Contracts
+@using Microsoft.JSInterop
+@inject IJSRuntime Browser
+
+<PageTitle>Component library | Benchline</PageTitle>
+<CascadingValue Value="@(new ThemeSetting(_dark, ToggleTheme))">
+    <header class="site-header">
+        <div class="wrap header-content"><a href="/" class="brand">Benchline</a><ThemeToggle /></div>
+    </header>
+</CascadingValue>
+<main class="wrap section" id="main">
+    <div class="section-title"><div><h1>Component library</h1><p>Examples from the workshop board.</p></div></div>
+
+    <section class="showcase-section" aria-labelledby="schedule-example">
+        <h2 id="schedule-example">Equipment schedule</h2>
+        <p class="muted">@AstanaTime.Zone</p>
+        <div class="showcase-toolbar">
+            <StationFilter Capabilities="Capabilities" @bind-Value="_selection" />
+            <ConnectionStatus Online="true" Live="true" />
+        </div>
+        <ScheduleGrid Board="Example" Filter="@_selection" IsMember="true" CanWrite="true"
+                      ReserveStation="SelectStation" ReserveSlot="SelectSlot" />
+        <WorkshopNotices Online="true" Notice="@_notice" Dismissed="@(() => _notice = null)" />
+    </section>
+
+    <section class="showcase-section" aria-labelledby="status-example">
+        <h2 id="status-example">Status tags</h2>
+        <StatusChip Text="Online" Tone="ChipTone.Positive" />
+        <StatusChip Text="Out of service" Tone="ChipTone.Warning" />
+        <StatusChip Text="Closed" />
+    </section>
+
+    <section class="showcase-section" aria-labelledby="list-example">
+        <h2 id="list-example">Ruled list</h2>
+        <ItemStack Items="Examples" Label="Example stations">
+            <ItemTemplate Context="name"><strong>@name</strong><span>One-hour sessions</span></ItemTemplate>
+        </ItemStack>
+    </section>
+</main>
+<footer class="wrap footer"><a href="/">Return to the workshop</a></footer>
+
+@code {
+    private static readonly string[] Examples = [DemoCatalog.Primary.Name, DemoCatalog.Printer.Name];
+    private static readonly string[] Capabilities = [DemoCatalog.Printer.Capability, DemoCatalog.Primary.Capability];
+    private static readonly StationDto Laser = ExampleStation(DemoCatalog.Primary, true);
+    private static readonly StationDto Printer = ExampleStation(DemoCatalog.Printer, false);
+    private static readonly DateTimeOffset SampleDate = new(2026, 11, 16, 9, 0, 0, TimeSpan.Zero);
+    private static readonly SlotDto Open = new(Guid.NewGuid(), Laser.Id, SampleDate.AddHours(1), SampleDate.AddHours(2), true);
+    private static readonly SlotDto Own = new(Guid.NewGuid(), Laser.Id, Open.End, Open.End.AddHours(1), false);
+    private static readonly SlotDto Taken = new(Guid.NewGuid(), Laser.Id, Own.End, Own.End.AddHours(1), false);
+    private static readonly BoardDto Example = new(1, SampleDate, [Laser, Printer],
+        [Open, Own, Taken, new(Guid.NewGuid(), Printer.Id, Open.Start, Open.End, false)],
+        [new(Guid.NewGuid(), Own.Id, "Reserved", Own.End)]);
+
+    private string _selection = "";
+    private string? _notice;
+    private bool _dark;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dark = await Browser.InvokeAsync<bool>("benchline.dark");
+            await Browser.InvokeVoidAsync("benchline.prepareOffline");
+            StateHasChanged();
+        }
+    }
+
+    private async Task ToggleTheme()
+    {
+        _dark = !_dark;
+        await Browser.InvokeVoidAsync("benchline.theme", _dark);
+    }
+
+    private void SelectStation(Guid _) => SelectSlot(Open);
+
+    private void SelectSlot(SlotDto slot) =>
+        _notice = $"Example session selected for {AstanaTime.Format(slot.Start, "HH:mm")} {AstanaTime.ShortZone}.";
+
+    private static StationDto ExampleStation(DemoCatalog.DemoStation station, bool online) =>
+        new(Guid.NewGuid(), station.Name, station.Capability, station.Location, online, online ? 0 : 1);
+}

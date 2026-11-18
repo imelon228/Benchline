@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#FFFFFF">
+    <meta name="description" content="Workshop scheduling and equipment reservations">
+    <base href="/">
+    <title>Benchline</title>
+    <link rel="icon" href="icons/benchline.svg" type="image/svg+xml">
+    <link rel="icon" href="icons/benchline-32.png" type="image/png" sizes="32x32">
+    <link rel="apple-touch-icon" href="icons/benchline-192.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="preload" href="fonts/plex-sans.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <header class="site-header"><div class="wrap header-content"><span class="brand">Benchline</span></div></header>
+        <main class="wrap section"><section class="signin-shell"><h1>Sign in</h1><p class="muted">Use your workshop account to view the schedule.</p><p role="status">Loading the workshop.</p></section></main>
+    </div>
+    <div id="blazor-error-ui" role="alert">The workshop stopped responding. <a href="/">Reload the app</a></div>
+    <script src="workshop.js"></script>
+    <script defer src="_framework/blazor.webassembly.js"></script>
+</body>
+</html>

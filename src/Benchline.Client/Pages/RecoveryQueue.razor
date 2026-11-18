@@ -1,0 +1,9 @@
+<ItemStack Items="@Stations.Where(station => station.Displaced > 0).ToArray()" Label="Disrupted stations" EmptyText="No reservations are waiting for replacement.">
+    <ItemTemplate Context="station">
+        <div class="stack-copy"><strong>@station.Name</strong><span class="muted">@station.Location</span><span>@station.Displaced waiting for replacement</span></div>
+    </ItemTemplate>
+</ItemStack>
+
+@code {
+    [Parameter] public StationDto[] Stations { get; set; } = [];
+}

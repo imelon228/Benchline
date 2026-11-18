@@ -1,0 +1,13 @@
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Contracts\bin\Release\net10.0\Benchline.Contracts.deps.json
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Contracts\bin\Release\net10.0\Benchline.Contracts.dll
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Contracts\bin\Release\net10.0\Benchline.Contracts.pdb
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Contracts\bin\Release\net10.0\Benchline.Contracts.xml
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Contracts\obj\Release\net10.0\Benchline.Contracts.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Contracts\obj\Release\net10.0\Benchline.Contracts.AssemblyInfoInputs.cache
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Contracts\obj\Release\net10.0\Benchline.Contracts.AssemblyInfo.cs
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Contracts\obj\Release\net10.0\Benchline.Contracts.csproj.CoreCompileInputs.cache
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Contracts\obj\Release\net10.0\Benchline.Contracts.dll
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Contracts\obj\Release\net10.0\refint\Benchline.Contracts.dll
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Contracts\obj\Release\net10.0\Benchline.Contracts.xml
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Contracts\obj\Release\net10.0\Benchline.Contracts.pdb
+C:\Users\aidyn\Desktop\IFP_FINAL\src\Benchline.Contracts\obj\Release\net10.0\ref\Benchline.Contracts.dll

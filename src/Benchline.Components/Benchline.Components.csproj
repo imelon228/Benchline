@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <ItemGroup>
+    <ProjectReference Include="../Benchline.Contracts/Benchline.Contracts.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.15" />
+  </ItemGroup>
+</Project>

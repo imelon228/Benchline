@@ -1,0 +1,46 @@
+<dialog id="plan-dialog" aria-labelledby="plan-title" @oncancel="Close">
+    <div class="dialog-head"><h2 id="plan-title">Recovery plan</h2><button type="button" class="icon-button" aria-label="Close recovery plan" @onclick="Close">Close</button></div>
+    <p>@Plan.Moves.Length replacement sessions, @Plan.Unmatched still waiting</p>
+    <ItemStack Items="Plan.Moves" Label="Replacement sessions" EmptyText="No compatible session meets a deadline. Close this preview to return to the board.">
+        <ItemTemplate Context="move">
+            @{
+                var slot = Board.Slots.SingleOrDefault(item => item.Id == move.SlotId);
+            }
+            @if (slot is not null)
+            {
+                var destination = Board.Stations.Single(item => item.Id == slot.StationId);
+                <div class="stack-copy"><strong>@destination.Name</strong><span class="muted">@destination.Location</span><span class="mono">@WorkshopFormat.Time(slot.Start)</span></div>
+            }
+            else
+            {
+                <span class="muted">Replacement session is no longer on the board.</span>
+            }
+            <span class="muted mono">@WorkshopFormat.ShortId(move.BookingId)</span>
+        </ItemTemplate>
+    </ItemStack>
+    @if (Error is { } publishError)
+    {
+        <NoticeBar Text="@publishError" Error="true" />
+    }
+    <button class="primary-button" disabled="@(DisabledReason is not null)"
+            aria-describedby="@(DisabledReason is not null ? "publish-reason" : null)" @onclick="Publish">Publish recovery</button>
+    @if (DisabledReason is { } reason)
+    {
+        <p class="action-reason" id="publish-reason">@reason</p>
+    }
+</dialog>
+
+@code {
+    [Parameter] public PlanDto Plan { get; set; } = default!;
+    [Parameter] public BoardDto Board { get; set; } = default!;
+    [Parameter] public bool CanWrite { get; set; }
+    [Parameter] public string WriteReason { get; set; } = "Schedule changes are unavailable";
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public EventCallback Close { get; set; }
+    [Parameter] public EventCallback Publish { get; set; }
+
+    private string? DisabledReason => Plan.Revision != Board.Revision
+        ? "The schedule changed. Close this preview and open a new one."
+        : !CanWrite ? WriteReason
+        : Plan.Moves.Length == 0 ? "No compatible replacement sessions" : null;
+}

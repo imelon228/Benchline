@@ -1,0 +1,163 @@
+@using Benchline.Contracts
+
+@if (_openStations.Count == 0)
+{
+    <p class="empty" role="status">No open sessions right now. Refresh the board or ask the workshop team about the next schedule.</p>
+}
+
+@if (_stations.Length == 0)
+{
+    <p class="empty">No stations match this filter. Choose All equipment to reset it.</p>
+}
+else
+{
+    <div class="schedule-scroll">
+        <table class="schedule-table" role="table" style="--slot-columns:@_starts.Length">
+            <caption class="sr-only">Equipment schedule, one-hour sessions in @AstanaTime.Zone</caption>
+            <thead role="rowgroup">
+                <tr role="row">
+                    <th scope="col" role="columnheader" class="station-column">Station</th>
+                    @foreach (var start in _starts)
+                    {
+                        <th scope="col" role="columnheader" class="time-heading" @key="start">
+                            <time datetime="@AstanaTime.Format(start, "O")">@AstanaTime.Format(start, "HH:mm")</time>
+                            @if (ShowDate(start))
+                            {
+                                <span>@AstanaTime.Format(start, "d MMM")</span>
+                            }
+                        </th>
+                    }
+                    <th scope="col" role="columnheader" class="actions-column">Actions</th>
+                </tr>
+            </thead>
+            <tbody role="rowgroup">
+                @for (var row = 0; row < _stations.Length; row++)
+                {
+                    var station = _stations[row];
+                    var rowIndex = row;
+                    var reason = ActionReason(station);
+                    var reasonId = reason is null ? null : $"station-reason-{station.Id}";
+                    <tr role="row" @key="station.Id" data-changed="@(_changedRows.Contains(station.Id) ? Board.Revision : (long?)null)">
+                        <th scope="row" role="rowheader" class="station-heading">
+                            <strong>@station.Name</strong>
+                            <span class="station-location">@station.Location</span>
+                            <span class="station-capability">@station.Capability</span>
+                            <StatusChip Text="@(station.Online ? "Online" : "Out of service")"
+                                        Tone="@(station.Online ? ChipTone.Positive : ChipTone.Warning)" />
+                        </th>
+                        @for (var column = 0; column < _starts.Length; column++)
+                        {
+                            var start = _starts[column];
+                            var slot = _slots.GetValueOrDefault((station.Id, start));
+                            <ScheduleCell @key="start" State="@CellState(station, slot)" Slot="slot" Time="start"
+                                          ShowDate="@ShowDate(start)" Row="rowIndex" Column="column" StationName="@station.Name" CanReserve="IsMember"
+                                          CanWrite="CanWrite" DisabledReasonId="@reasonId" Reserve="ReserveSlot" />
+                        }
+                        <td class="station-actions" role="cell">
+                            @if (IsMember)
+                            {
+                                <button type="button" class="secondary-button" disabled="@(reason is not null)" aria-describedby="@reasonId"
+                                        @onclick="() => ReserveStation.InvokeAsync(station.Id)">Reserve<span class="sr-only"> @station.Name</span></button>
+                            }
+                            else
+                            {
+                                <button type="button" class="secondary-button" disabled="@(!CanWrite)" aria-describedby="@reasonId"
+                                        @onclick="() => AvailabilityChanged.InvokeAsync(station)">@(station.Online ? "Report outage" : "Restore station")<span class="sr-only"> @station.Name</span></button>
+                                @if (IsCoordinator && station.Displaced > 0)
+                                {
+                                    <button type="button" class="secondary-button" disabled="@(!CanWrite)" aria-describedby="@reasonId"
+                                            @onclick="() => Preview.InvokeAsync(station.Id)">Preview plan<span class="sr-only"> for @station.Name</span></button>
+                                }
+                            }
+                            @if (reason is not null)
+                            {
+                                <small class="action-reason" id="@reasonId">@reason</small>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public BoardDto Board { get; set; } = default!;
+    [Parameter] public string Filter { get; set; } = "";
+    [Parameter] public Guid? PendingSlot { get; set; }
+    [Parameter] public bool IsMember { get; set; }
+    [Parameter] public bool IsCoordinator { get; set; }
+    [Parameter] public bool CanWrite { get; set; }
+    [Parameter] public string? WriteReason { get; set; }
+    [Parameter] public EventCallback<Guid> ReserveStation { get; set; }
+    [Parameter] public EventCallback<SlotDto> ReserveSlot { get; set; }
+    [Parameter] public EventCallback<StationDto> AvailabilityChanged { get; set; }
+    [Parameter] public EventCallback<Guid> Preview { get; set; }
+
+    private DateTimeOffset[] _starts = [];
+    private StationDto[] _stations = [];
+    private Dictionary<(Guid, DateTimeOffset), SlotDto> _slots = [];
+    private HashSet<Guid> _owned = [];
+    private HashSet<Guid> _openStations = [];
+    private HashSet<Guid> _changedRows = [];
+    private bool _multipleDates;
+    private DateTime _today;
+    private BoardDto? _previous;
+
+    protected override void OnParametersSet()
+    {
+        if (_previous is { } previous && previous.Revision != Board.Revision)
+        {
+            var oldStations = previous.Stations.ToDictionary(station => station.Id);
+            var oldSlots = previous.Slots.ToLookup(slot => slot.StationId);
+            var newSlots = Board.Slots.ToLookup(slot => slot.StationId);
+            var changedBookings = previous.Bookings.Except(Board.Bookings).Concat(Board.Bookings.Except(previous.Bookings))
+                .Select(booking => booking.SlotId).ToHashSet();
+            _changedRows = Board.Stations.Where(station => oldStations.GetValueOrDefault(station.Id) != station
+                || !oldSlots[station.Id].SequenceEqual(newSlots[station.Id])
+                || newSlots[station.Id].Any(slot => changedBookings.Contains(slot.Id)))
+                .Select(station => station.Id).ToHashSet();
+        }
+        _previous = Board;
+        _stations = Board.Stations.Where(station => Filter.Length == 0 || station.Capability == Filter).ToArray();
+        var now = AstanaTime.Convert(Board.AsOf);
+        _today = now.Date;
+        var hour = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, 0, 0, now.Offset);
+        var window = Board.Slots.Where(slot => slot.Start >= hour && slot.End > Board.AsOf).ToArray();
+        _starts = window.Select(slot => slot.Start).Distinct().Order().ToArray();
+        _slots = window.ToDictionary(slot => (slot.StationId, slot.Start));
+        _owned = Board.Bookings.Where(booking => booking.Status == "Reserved").Select(booking => booking.SlotId).ToHashSet();
+        var onlineStations = Board.Stations.Where(station => station.Online).Select(station => station.Id).ToHashSet();
+        _openStations = window.Where(slot => slot.Start > Board.AsOf && slot.Available && slot.Id != PendingSlot
+                && onlineStations.Contains(slot.StationId))
+            .Select(slot => slot.StationId).ToHashSet();
+        _multipleDates = _starts.Length > 0
+            && AstanaTime.Convert(_starts[0]).Date != AstanaTime.Convert(_starts[^1]).Date;
+    }
+
+    private ScheduleSlotState CellState(StationDto station, SlotDto? slot)
+    {
+        if (slot is null)
+            return ScheduleSlotState.NoSession;
+        if (!station.Online)
+            return ScheduleSlotState.OutOfService;
+        if (slot.Id == PendingSlot)
+            return ScheduleSlotState.Saving;
+        if (_owned.Contains(slot.Id))
+            return ScheduleSlotState.Own;
+        if (slot.Start <= Board.AsOf)
+            return ScheduleSlotState.InProgress;
+        return slot.Available ? ScheduleSlotState.Open : ScheduleSlotState.Taken;
+    }
+
+    private string? ActionReason(StationDto station)
+    {
+        if (IsMember && !station.Online)
+            return "Station is out of service";
+        if (!CanWrite)
+            return WriteReason ?? "Schedule changes are unavailable";
+        return IsMember && !_openStations.Contains(station.Id) ? "No open sessions" : null;
+    }
+
+    private bool ShowDate(DateTimeOffset start) => _multipleDates || AstanaTime.Convert(start).Date != _today;
+}

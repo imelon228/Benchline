@@ -1,0 +1,49 @@
+<CascadingValue Value="Theme">
+<header class="site-header">
+    <div class="wrap header-content">
+        <a class="brand" href="/">Benchline</a>
+        @if (Session is not null)
+        {
+            <nav aria-label="Workshop navigation">
+                <button class="nav-button" aria-current="@Current(BoardView.Board)" @onclick="() => ViewChanged.InvokeAsync(BoardView.Board)">Workshop</button>
+                @if (IsMember)
+                {
+                    <button class="nav-button" aria-current="@Current(BoardView.Bookings)" @onclick="() => ViewChanged.InvokeAsync(BoardView.Bookings)">My bookings</button>
+                }
+                @if (IsCoordinator)
+                {
+                    <button class="nav-button" aria-current="@Current(BoardView.Audit)" @onclick="() => ViewChanged.InvokeAsync(BoardView.Audit)">Audit log</button>
+                }
+            </nav>
+        }
+        <div class="header-tools">
+            <ThemeToggle />
+            @if (Session is { } session)
+            {
+                <span class="identity"><strong>@session.Name</strong><small>@session.Role</small></span>
+                <div>
+                    <button class="quiet-button" disabled="@(!CanSignOut)" aria-describedby="@(!CanSignOut ? "signout-reason" : null)" @onclick="SignOut">Sign out</button>
+                    @if (!CanSignOut)
+                    {
+                        <small class="action-reason" id="signout-reason">@WriteReason</small>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</header>
+</CascadingValue>
+
+@code {
+    [Parameter] public ThemeSetting Theme { get; set; } = default!;
+    [Parameter] public SessionDto? Session { get; set; }
+    [Parameter] public bool IsMember { get; set; }
+    [Parameter] public bool IsCoordinator { get; set; }
+    [Parameter] public bool CanSignOut { get; set; }
+    [Parameter] public string WriteReason { get; set; } = "";
+    [Parameter] public BoardView View { get; set; }
+    [Parameter] public EventCallback<BoardView> ViewChanged { get; set; }
+    [Parameter] public EventCallback SignOut { get; set; }
+
+    private string? Current(BoardView view) => View == view ? "page" : null;
+}

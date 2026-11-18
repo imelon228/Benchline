@@ -1,0 +1,36 @@
+<ItemStack Items="@Board.Bookings.OrderBy(item => Board.Slots.Single(slot => slot.Id == item.SlotId).Start).ToArray()" Label="Reservations" EmptyText="You have no reservations. Open Workshop to reserve a session.">
+    <ItemTemplate Context="booking">
+        @{
+            var slot = Board.Slots.Single(item => item.Id == booking.SlotId);
+            var station = Board.Stations.Single(item => item.Id == slot.StationId);
+        }
+        <div class="stack-copy">
+            <strong>@station.Name</strong><span class="muted">@station.Location</span><span class="mono">@WorkshopFormat.Time(slot.Start)</span>
+            <StatusChip Text="@(booking.Status == "Displaced" ? "Awaiting replacement" : booking.Status)"
+                        Tone="@(booking.Status == "Displaced" ? ChipTone.Warning : ChipTone.Positive)" />
+            @if (booking.Status == "Displaced")
+            {
+                <span class="mono">Finish by @WorkshopFormat.Time(booking.Deadline)</span>
+            }
+        </div>
+        @if ((booking.Status == "Reserved" && slot.Start > Board.AsOf) || (booking.Status == "Displaced" && booking.Deadline > Board.AsOf))
+        {
+            var reasonId = CanWrite ? null : $"cancel-reason-{booking.Id}";
+            <div>
+                <button class="quiet-button" disabled="@(!CanWrite)" aria-describedby="@reasonId"
+                        @onclick="() => Cancel.InvokeAsync(booking.Id)" aria-label="@($"Cancel {station.Name} reservation")">Cancel</button>
+                @if (reasonId is not null)
+                {
+                    <small class="action-reason" id="@reasonId">@WriteReason</small>
+                }
+            </div>
+        }
+    </ItemTemplate>
+</ItemStack>
+
+@code {
+    [Parameter] public BoardDto Board { get; set; } = default!;
+    [Parameter] public bool CanWrite { get; set; }
+    [Parameter] public string WriteReason { get; set; } = "Schedule changes are unavailable";
+    [Parameter] public EventCallback<Guid> Cancel { get; set; }
+}
